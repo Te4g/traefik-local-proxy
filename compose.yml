@@ -1,0 +1,26 @@
+services:
+    traefik:
+        image: "traefik:v3.1"
+        command:
+            - "--log.level=DEBUG"
+            - "--api.insecure=true"
+            - "--providers.docker=true"
+            - "--providers.docker.exposedbydefault=false"
+            - "--providers.file.filename=/dynamic.yml"
+            - "--entryPoints.web.address=:80"
+            - "--entryPoints.websecure.address=:443"
+        ports:
+            - "80:80"
+            - "443:443"
+        volumes:
+            - "/var/run/docker.sock:/var/run/docker.sock:ro"
+            - "./dynamic.yml:/dynamic.yml"
+            - "./certs:/certs"
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.middlewares.force-ssl.redirectscheme.scheme=https"
+            - "traefik.http.middlewares.force-ssl.redirectscheme.permanent=true"
+            - "traefik.http.routers.traefik-dashboard.rule=Host(`traefik.dev.localhost`)"
+            - "traefik.http.routers.traefik-dashboard.entrypoints=websecure"
+            - "traefik.http.routers.traefik-dashboard.tls=true"
+            - "traefik.http.routers.traefik-dashboard.service=api@internal"
